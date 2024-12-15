@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>To-Do List</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-top: 50px;
+    }
+
+    h1 {
+      color: #333;
+    }
+
+    .todo-container {
+      width: 300px;
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+
+    #todo-input {
+      width: 100%;
+      padding: 10px;
+      margin-bottom: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    #add-task-btn {
+      width: 100%;
+      padding: 10px;
+      background-color: #007bff;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      font-size: 16px;
+    }
+
+    #add-task-btn:hover {
+      background-color: #0056b3;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+    }
+
+    li {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background-color: #f1f1f1;
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 4px;
+    }
+
+    li.completed span {
+      text-decoration: line-through;
+      color: gray;
+    }
+
+    button.delete-btn {
+      background-color: #dc3545;
+      color: white;
+      border: none;
+      border-radius: 4px;
+      padding: 5px 10px;
+      cursor: pointer;
+    }
+
+    button.delete-btn:hover {
+      background-color: #a71d2a;
+    }
+  </style>
+</head>
+<body>
+  <h1>To-Do List</h1>
+  <div class="todo-container">
+    <input type="text" id="todo-input" placeholder="Add a new task" />
+    <button id="add-task-btn">Add Task</button>
+    <ul id="todo-list"></ul>
+  </div>
+
+  <script>
+    // Wait for the DOM to load
+    document.addEventListener("DOMContentLoaded", () => {
+      const todoInput = document.getElementById("todo-input");
+      const addTaskButton = document.getElementById("add-task-btn");
+      const todoList = document.getElementById("todo-list");
+
+      // Load tasks from localStorage or initialize an empty array
+      let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+      // Render tasks saved in localStorage on page load
+      tasks.forEach((task) => renderTask(task));
+
+      // Add a new task
+      addTaskButton.addEventListener("click", () => {
+        const taskText = todoInput.value.trim();
+        if (taskText === "") {
+          alert("Task cannot be empty!");
+          return;
+        }
+
+        const newTask = {
+          id: Date.now(), // Unique ID based on timestamp
+          text: taskText,
+          completed: false,
+        };
+
+        tasks.push(newTask); // Add new task to the tasks array
+        saveTasks(); // Save tasks to localStorage
+        renderTask(newTask); // Render the new task
+        todoInput.value = ""; // Clear the input field
+      });
+
+      // Render a single task on the UI
+      function renderTask(task) {
+        const li = document.createElement("li");
+        li.setAttribute("data-id", task.id);
+        if (task.completed) li.classList.add("completed");
+
+        li.innerHTML = `
+          <span>${task.text}</span>
+          <button class="delete-btn">Delete</button>
+        `;
+
+        // Toggle task completion on click (except delete button)
+        li.addEventListener("click", (e) => {
+          if (e.target.tagName === "BUTTON") return; // Ignore clicks on delete button
+          task.completed = !task.completed; // Toggle the completed state
+          li.classList.toggle("completed"); // Update the visual state
+          saveTasks(); // Save updated tasks to localStorage
+        });
+
+        // Delete task
+        li.querySelector(".delete-btn").addEventListener("click", (e) => {
+          e.stopPropagation(); // Prevent triggering the parent click event
+          tasks = tasks.filter((t) => t.id !== task.id); // Remove task from array
+          li.remove(); // Remove task from DOM
+          saveTasks(); // Save updated tasks to localStorage
+        });
+
+        todoList.appendChild(li); // Append the new task to the list
+      }
+
+      // Save tasks to localStorage
+      function saveTasks() {
+        localStorage.setItem("tasks", JSON.stringify(tasks));
+      }
+    });
+  </script>
+</body>
+</html>
